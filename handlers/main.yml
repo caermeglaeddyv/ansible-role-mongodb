@@ -1,0 +1,20 @@
+---
+# handlers file for roles/mongodb
+- name: restart mongod
+  systemd:
+    daemon_reload: yes
+    name: mongod
+    state: restarted
+
+- name: stop mongod
+  systemd:
+    daemon_reload: yes
+    name: mongod
+    state: stopped
+
+- name: start mongod
+  systemd:
+    daemon_reload: yes
+    name: mongod
+    state: started
+    enabled: yes

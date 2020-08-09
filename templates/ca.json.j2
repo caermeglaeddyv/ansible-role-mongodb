@@ -1,0 +1,17 @@
+{
+  "CN": "{{ mongodb_certs_ca_cn }}",
+  "key": {
+    "algo": "{{ mongodb_certs_ca_key_algo }}",
+    "size": {{ mongodb_certs_ca_key_size }}
+  },
+  "names": [
+  {% for name in mongodb_certs_ca_names -%}
+  {
+    "C": "{{ name.c }}",
+    "L": "{{ name.l }}",
+    "O": "{{ name.o }}",
+    "OU": "{{ name.ou }}"
+  }
+  {% endfor -%}
+ ]
+}

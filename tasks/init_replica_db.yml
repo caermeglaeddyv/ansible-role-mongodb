@@ -1,0 +1,29 @@
+---
+- name: create replicaset
+  mongodb_replicaset:
+    ssl: yes
+    ssl_cert_reqs: CERT_NONE
+    login_host: "{{ mongodb_bind_ip if mongodb_bind_ip else ansible_default_ipv4.address }}"
+    login_user: admin
+    login_password: "{{ mongodb_admin_pass }}"
+    replica_set: "{{ mongodb_replicaset_name }}"
+    members: "{{ groups.mongodbcluster }}"
+  no_log: true
+  tags:
+  - never
+
+- name: create database users
+  mongodb_user:
+    ssl: yes
+    ssl_cert_reqs: CERT_NONE
+    login_host: "{{ mongodb_bind_ip if mongodb_bind_ip else ansible_default_ipv4.address }}"
+    replica_set: "{{ mongodb_replicaset_name }}"
+    login_user: admin
+    login_password: "{{ mongodb_admin_pass }}"
+    database: "{{ item.database }}"
+    name: "{{ item.username }}"
+    password: "{{ item.password }}"
+    roles: "{{ item.roles }}"
+  no_log: true
+  with_items: "{{ mongodb_init_dbs }}"
+  when: mongodb_init_dbs is defined

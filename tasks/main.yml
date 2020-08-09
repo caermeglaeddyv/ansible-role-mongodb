@@ -1,0 +1,207 @@
+---
+# tasks file for roles/mongodb
+- import_tasks: create_certs.yml
+  when: mongodb_certs_create
+  tags:
+  - never
+
+- name: disable selinux
+  selinux:
+    state: disabled
+
+- name: reboot all machines
+  reboot:
+    msg: "Rebooting machines after disabling SELinux..."
+  tags:
+  - never
+
+- name: create physical volume and volume group for mongodb
+  lvg:
+    vg: mongodb
+    pvs:
+    - /dev/disk/by-path/{{ mongodb_disk_path }}
+  when: mongodb_disk_path is defined
+  tags:
+  - never
+
+- name: create logical volume for mongodb
+  lvol:
+    vg: mongodb
+    lv: mongodb
+    size: 100%FREE
+  when: mongodb_disk_path is defined
+  tags:
+  - never
+
+- name: format mongodb logical volume with xfs filesystem
+  filesystem:
+    dev: /dev/mapper/mongodb-mongodb
+    fstype: xfs
+  when: mongodb_disk_path is defined
+  tags:
+  - never
+
+- name: create mongodb data directory
+  file:
+    path: /var/lib/mongo
+    state: directory
+
+- name: mount mongodb logical volume
+  mount:
+    path: /var/lib/mongo
+    src: /dev/mapper/mongodb-mongodb
+    fstype: xfs
+    state: mounted
+  when: mongodb_disk_path is defined
+
+- name: disable swap
+  command: /usr/sbin/swapoff -a
+
+- name: remove swapfile from /etc/fstab
+  mount:
+    path: swap
+    fstype: swap
+    state: absent
+
+- name: tuning kernel for mongodb (vm.swappiness)
+  sysctl:
+    name: vm.swappiness
+    value: 0
+    state: present
+    ignoreerrors: yes
+    sysctl_set: yes
+
+- name: add mongodb-org yum repo
+  yum_repository:
+    name: mongodb-org
+    description: MongoDB Repository
+    baseurl: https://repo.mongodb.org/yum/redhat/7/mongodb-org/{{ mongodb_version }}/x86_64/
+    gpgkey: https://www.mongodb.org/static/pgp/server-{{ mongodb_version }}.asc
+    gpgcheck: yes
+
+- name: install mongodb-org and epel
+  yum:
+    name:
+    - mongodb-org-{{ mongodb_version }}.{{ mongodb_revision }}
+    - epel-release
+    state: present
+    allow_downgrade: yes
+
+- name: install pip
+  yum:
+    name: python-pip
+    state: present
+
+- name: install pymongo
+  pip:
+    name: pymongo
+    state: present
+
+- name: uninstall epel
+  yum:
+    name: epel-release
+    state: absent
+    autoremove: yes
+
+- name: copy mongod config
+  template:
+    src: etc_mongod.conf.j2
+    dest: /etc/mongod.conf
+    mode: 0644
+  tags:
+  - never
+
+- name: create keyfile directory
+  file:
+    path: /.mongo-pki
+    state: directory
+    mode: 0500
+    owner: mongod
+    group: mongod
+
+- name: create mongod keypair
+  shell: |
+    openssl rand -base64 756 > files/{{ mongodb_project_dir }}/mongodb/.mongo-pki_keyfile
+  delegate_to: localhost
+  connection: local
+  run_once: true
+  become: no
+  tags:
+  - never
+
+- name: copy mongod keypair and keyfile
+  copy:
+    src: files/{{ mongodb_project_dir }}/mongodb/.mongo-pki_{{ item }}
+    dest: /.mongo-pki/{{ item }}
+    mode: 0400
+    owner: mongod
+    group: mongod
+  with_items:
+  - keypair.pem
+  - keyfile
+
+- name: open firewall port
+  firewalld:
+    immediate: yes
+    permanent: yes
+    port: 27017/tcp
+    state: enabled
+
+- name: start and enable mongod
+  systemd:
+    daemon_reload: yes
+    name: mongod
+    enabled: yes
+    state: started
+  tags:
+  - never
+
+- name: create mongodb admin user
+  mongodb_user:
+    ssl: yes
+    ssl_cert_reqs: CERT_NONE
+    login_host: "{{ mongodb_bind_ip if mongodb_bind_ip else ansible_default_ipv4.address }}"
+    database: admin
+    name: admin
+    roles: root
+    password: "{{ mongodb_admin_pass }}"
+  no_log: true
+  notify:
+  - restart mongod
+  tags:
+  - never
+
+- name: enable access control
+  template:
+    src: etc_mongod.conf_with_ac.j2
+    dest: /etc/mongod.conf
+    mode: 0644
+  tags:
+  - never
+
+- name: restart mongod
+  systemd:
+    daemon_reload: yes
+    name: mongod
+    state: restarted
+  tags:
+  - never
+
+- name: enable replication
+  template:
+    src: etc_mongod.conf_with_repl.j2
+    dest: /etc/mongod.conf
+    mode: 0644
+  tags:
+  - never
+
+- name: restart mongod
+  systemd:
+    daemon_reload: yes
+    name: mongod
+    state: restarted
+  tags:
+  - never
+
+- import_tasks: init_replica_db.yml
+  when: inventory_hostname in ansible_play_batch[0]

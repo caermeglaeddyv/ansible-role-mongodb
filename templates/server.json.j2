@@ -1,0 +1,14 @@
+{
+  "signing": {
+      "profiles": {
+          "server": {
+              "expiry": "{{ mongodb_certs_server_expiry }}",
+              "usages": [
+                  "digital signature",
+                  "key encipherment",
+                  "server auth"
+              ]
+          }
+      }
+  }
+}
