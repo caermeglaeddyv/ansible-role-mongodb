@@ -1,7 +1,7 @@
 ---
 - name: create mongodb directory
   file:
-    path: files/{{ mongodb_project_dir }}/mongodb
+    path: "{{ mongodb_project_dir }}/mongodb"
     state: directory
   delegate_to: localhost
   run_once: true
@@ -12,7 +12,7 @@
 - name: generate cfssl config files
   template:
     src: "{{ item }}.j2"
-    dest: files/{{ mongodb_project_dir }}/mongodb/{{ item }}
+    dest: "{{ mongodb_project_dir }}/mongodb/{{ item }}"
   with_items:
   - ca.json
   - server.json
@@ -31,7 +31,7 @@
     -config server.json -profile=server mongodb.json | cfssljson -bare mongodb \
     && cat mongodb-key.pem mongodb.pem > .mongo-pki_keypair.pem
   environment:
-    ANSIBLE_MONGODB_WORKDIR: files/{{ mongodb_project_dir }}/mongodb
+    ANSIBLE_MONGODB_WORKDIR: "{{ mongodb_project_dir }}/mongodb"
   args:
     chdir: $ANSIBLE_MONGODB_WORKDIR
   delegate_to: localhost

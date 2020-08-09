@@ -121,7 +121,7 @@
 
 - name: create mongod keypair
   shell: |
-    openssl rand -base64 756 > files/{{ mongodb_project_dir }}/mongodb/.mongo-pki_keyfile
+    openssl rand -base64 756 > {{ mongodb_project_dir }}/mongodb/.mongo-pki_keyfile
   delegate_to: localhost
   connection: local
   run_once: true
@@ -131,7 +131,7 @@
 
 - name: copy mongod keypair and keyfile
   copy:
-    src: files/{{ mongodb_project_dir }}/mongodb/.mongo-pki_{{ item }}
+    src: "{{ mongodb_project_dir }}/mongodb/.mongo-pki_{{ item }}"
     dest: /.mongo-pki/{{ item }}
     mode: 0400
     owner: mongod
