@@ -7,7 +7,7 @@
     login_user: admin
     login_password: "{{ mongodb_admin_pass }}"
     replica_set: "{{ mongodb_replicaset_name }}"
-    members: "{{ groups.mongodbcluster }}"
+    members: "{{ ansible_play_batch }}"
   no_log: true
   tags:
   - never
