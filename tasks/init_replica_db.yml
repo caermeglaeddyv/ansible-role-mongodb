@@ -26,4 +26,4 @@
     roles: "{{ item.roles }}"
   no_log: true
   with_items: "{{ mongodb_init_dbs }}"
-  when: mongodb_init_dbs is defined
+  when: mongodb_init_dbs | bool

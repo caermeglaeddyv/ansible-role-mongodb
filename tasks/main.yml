@@ -20,7 +20,7 @@
     vg: mongodb
     pvs:
     - /dev/disk/by-path/{{ mongodb_disk_path }}
-  when: mongodb_disk_path is defined
+  when: mongodb_disk_path | length
   tags:
   - never
 
@@ -29,7 +29,7 @@
     vg: mongodb
     lv: mongodb
     size: 100%FREE
-  when: mongodb_disk_path is defined
+  when: mongodb_disk_path | length
   tags:
   - never
 
@@ -37,7 +37,7 @@
   filesystem:
     dev: /dev/mapper/mongodb-mongodb
     fstype: xfs
-  when: mongodb_disk_path is defined
+  when: mongodb_disk_path | length
   tags:
   - never
 
@@ -52,7 +52,7 @@
     src: /dev/mapper/mongodb-mongodb
     fstype: xfs
     state: mounted
-  when: mongodb_disk_path is defined
+  when: mongodb_disk_path | length
 
 - name: disable swap
   command: /usr/sbin/swapoff -a
