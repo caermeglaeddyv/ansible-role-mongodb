@@ -8,10 +8,12 @@
 - name: disable selinux
   selinux:
     state: disabled
+  when: ansible_selinux.status != 'disabled'
 
 - name: reboot all machines
   reboot:
     msg: "Rebooting machines after disabling SELinux..."
+  when: ansible_selinux.status != 'disabled'
   tags:
   - never
 
