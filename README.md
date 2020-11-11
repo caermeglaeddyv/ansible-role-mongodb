@@ -112,6 +112,16 @@ mongodb_bind_ip: ""
 # Name of MongoDB replica set which will be created:
 mongodb_replicaset_name: myreplicaset
 
+# Specifies whether a certificate is required from the other side
+# of the connection, and whether it will be validated if provided:
+mongodb_replicaset_ssl_cert_reqs: CERT_NONE
+
+# List of MongoDB replica set members if you want to use ones
+# different from "ansible_play_batch" names for hostname verification:
+mongodb_replicaset_members: []
+# - abc.xyz
+# - def.xyz
+
 # Database, users and rights to create after initializing MongoDBreplicaset:
 mongodb_init_dbs: []
 # - database: test

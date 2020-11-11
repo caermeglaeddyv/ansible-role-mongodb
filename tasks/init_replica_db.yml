@@ -2,12 +2,12 @@
 - name: create replicaset
   mongodb_replicaset:
     ssl: yes
-    ssl_cert_reqs: CERT_NONE
-    login_host: "{{ mongodb_bind_ip if mongodb_bind_ip else ansible_default_ipv4.address }}"
+    ssl_cert_reqs: "{{ mongodb_replicaset_ssl_cert_reqs }}"
+    login_host: "{{ mongodb_replicaset_members[0] if mongodb_replicaset_members else mongodb_bind_ip if mongodb_bind_ip else ansible_default_ipv4.address }}"
     login_user: admin
     login_password: "{{ mongodb_admin_pass }}"
     replica_set: "{{ mongodb_replicaset_name }}"
-    members: "{{ ansible_play_batch }}"
+    members: "{{ mongodb_replicaset_members if mongodb_replicaset_members else ansible_play_batch }}"
   no_log: true
   tags:
   - never
