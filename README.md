@@ -15,7 +15,7 @@ Requirements
 ------------
 
 This is not strict requirements and it may not work with other versions than tested ones.
-Anyway. feel yourself free to test by yourself, suggest addition of new functionality and contribute.
+Anyway. feel free to test by yourself, suggest addition of new functionality and contribute.
 
 Role is tested with:
 - Ansible version >= 2.8.6
@@ -23,7 +23,7 @@ Role is tested with:
 
 Currently supports installation of MongoDB versions >= 4.2.
 
-cfssl and cfssljson must be installed on localhost if mongodb_certs_create variable is set to True (default).
+cfssl and cfssljson must be installed on localhost if mongodb_cfssl variable is set to True (default).
 
 
 Role Variables
@@ -38,6 +38,9 @@ Variables and their descriptions copied from defaults/main.yml
 # not to change this setting regardless of your RAM size, includes no_thp role as dependency:
 mongodb_no_thp: true
 
+# Use CFSSL to create MongoDB ReplicaSet Root CA and self-signed certificates:
+mongodb_cfssl: true
+
 # Variable which is common for most projects, used in
 # configuration files or file/directory names.
 # By default used as reference for etcd_project_dir variable:
@@ -47,50 +50,6 @@ mongodb_project_name: test
 # project working directory on the localhost for the role.
 # Currently is used to store created certificates and keyfile:
 mongodb_project_dir: "{{ mongodb_project_name }}"
-
-# Use CFSSL to create MongoDB ReplicaSet Root CA and self-signed certificates:
-mongodb_certs_create: true
-
-# Common name for MongoDB Root CA:
-mongodb_certs_ca_cn: "mongodb root ca"
-
-# Key algorithm for MongoDB Root CA:
-mongodb_certs_ca_key_algo: "rsa"
-
-# Key size for MongoDB Root CA:
-mongodb_certs_ca_key_size: 4096
-
-# Distinguished names forMongoDB Root CA:
-mongodb_certs_ca_names:
-- c: "Neverland"
-  l: "Rivia"
-  o: "Witchers"
-  ou: "Caer Morhen"
-
-# MongoDB server certificate expiry in hours:
-mongodb_certs_server_expiry: "17520h"
-
-# Common name for MongoDB server certificate:
-mongodb_certs_server_cn: "mongodb server"
-
-# Key algorithm for MongoDB server certificate:
-mongodb_certs_server_key_algo: "rsa"
-
-# Key size for MongoDB server certificate:
-mongodb_certs_server_key_size: 2048
-
-# Distinguished names for MongoDB server certificate:
-mongodb_certs_server_names:
-- c: "Neverland"
-  l: "Rivia"
-  o: "Witchers"
-  ou: "Caer Morhen"
-
-# Hostnames, DNS names and/or IP addressed for which MongoDB
-# server certificate will be signed. If your server hostnames
-# and IP addressed are different from ones in inventory,
-# provide them manually using this variable:
-mongodb_certs_server_hosts: []
 
 # Name of separate device in /dev/disk/by-path/ for MongoDB storage:
 mongodb_disk_path: ""          # pci-0000:13:00.0-scsi-0:0:0:0
@@ -139,7 +98,7 @@ Dependencies
 
 If mongodb_no_thp variable set to True (default), installs no_thp role to permanently disable Transparent Huge Pages, which is strongly [recommended](https://docs.mongodb.com/manual/tutorial/transparent-huge-pages/).
 
-cfssl and cfssljson must be installed on localhost if mongodb_certs_create variable is set to True (default).
+cfssl and cfssljson must be installed on localhost if mongodb_cfssl variable is set to True (default).
 
 
 Example Playbook

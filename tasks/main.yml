@@ -1,10 +1,5 @@
 ---
 # tasks file for mongodb
-- import_tasks: create_certs.yml
-  when: mongodb_certs_create
-  tags:
-  - never
-
 - name: disable selinux
   selinux:
     state: disabled
@@ -122,7 +117,20 @@
     owner: mongod
     group: mongod
 
-- name: create mongod keypair
+- name: create mongodb keypair
+  shell: |
+    cat mongodb-key.pem mongodb.pem > .mongo-pki_keypair.pem
+  environment:
+    ANSIBLE_MONGODB_WORKDIR: "{{ mongodb_project_dir }}/mongodb"
+  args:
+    chdir: $ANSIBLE_MONGODB_WORKDIR
+  delegate_to: localhost
+  run_once: true
+  become: no
+  tags:
+  - never
+
+- name: create mongod keyfile
   shell: |
     openssl rand -base64 756 > {{ mongodb_project_dir }}/mongodb/.mongo-pki_keyfile
   delegate_to: localhost
