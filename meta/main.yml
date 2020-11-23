@@ -22,7 +22,7 @@ galaxy_info:
   - nothp
 
 dependencies:
-- role: no_thp
+- role: caermeglaeddyv.no_thp
   when: mongodb_no_thp
-- role: cfssl
+- role: caermeglaeddyv.cfssl
   when: mongodb_cfssl
